@@ -16,7 +16,7 @@ from langchain.prompts import PromptTemplate
 from langchain.chains.llm import LLMChain
 from langchain.chains.sequential import SequentialChain, SimpleSequentialChain
 from langchain_experimental.agents.agent_toolkits import create_python_agent
-from langchain_experimental.tools.python.tool import PythonREPLTool
+from langchain_experimental.tools.python.tool import PythonREPLTool, PythonAstREPLTool
 from langchain.agents.agent_types import AgentType
 from langchain.utilities import WikipediaAPIWrapper
 from langchain.utilities import GoogleSearchAPIWrapper
@@ -162,7 +162,7 @@ if st.session_state.clicked[1]:
 
                 return
 
-            @st.cache_data
+            # @st.cache_data
             def function_question_dataframe():
                 dataframe_info = pandas_agent.run(user_question_dataframe)
                 st.write(dataframe_info)
@@ -240,6 +240,7 @@ if st.session_state.clicked[1]:
                     llm=llm,
                     tool=PythonREPLTool(),
                     agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+                    verbose=True,
                     handle_parsing_errors=True,
                     # Add allow_dangerous_code=True to allow the agent to execute code
                 )
@@ -274,7 +275,8 @@ if st.session_state.clicked[1]:
 
             if user_question_attribute:
                 user_question_dataframe = st.text_input(
-                    "Is there anything else that you want to know about the data?"
+                    "Is there anything else that you want to know about the data?",
+                    placeholder="Type here...",
                 )
                 if (
                     user_question_dataframe is not None
