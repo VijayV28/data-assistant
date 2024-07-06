@@ -93,7 +93,7 @@ if st.session_state.clicked[1]:
             st.write(df.describe())
 
             correlation = pandas_agent.run(
-                "What is the correlation between the columns in the dataset?"
+                "What is the correlation between the columns in the dataset? Do not create any charts."
             )
             st.write(correlation)
 
@@ -107,6 +107,44 @@ if st.session_state.clicked[1]:
 
             return
 
+        @st.cache_data
+        def function_question_attribute():
+            st.line_chart(df, y=[user_question_attribute])
+            summary_statistics = pandas_agent.run(
+                f"Give me a summary of the statistics of {user_question_attribute}. Do not create any charts."
+            )
+            st.write(summary_statistics)
+
+            normality = pandas_agent.run(
+                f"Is {user_question_attribute} normally distributed? Do not create any charts."
+            )
+            st.write(normality)
+
+            outliers = pandas_agent.run(
+                f"Are there any outliers in {user_question_attribute}?"
+            )
+            st.write(outliers)
+
+            trends = pandas_agent.run(
+                f"What are the trends in {user_question_attribute}? Do not create any charts."
+            )
+            st.write(trends)
+
+            missing_values = pandas_agent.run(
+                f"Are there any missing values in {user_question_attribute}?"
+            )
+            st.write(missing_values)
+
+            return
+
+        @st.cache_data
+        def function_question_dataframe():
+            dataframe_info = pandas_agent.run(
+                f"{user_question_dataframe}. You are not allowed to create any charts"
+            )
+            st.write(dataframe_info)
+            return
+
         # Main
         st.header("Exploratory Data Analysis")
         st.subheader("General information about the dataset")
@@ -117,4 +155,18 @@ if st.session_state.clicked[1]:
 
         function_agent()
 
-        user_question = st.text_input("What variable are you interested in?")
+        st.subheader("Attribute Information")
+        user_question_attribute = st.text_input("What attribute are you interested in?")
+        if user_question_attribute is not None and user_question_attribute != "":
+            function_question_attribute()
+
+            st.subheader("Further Study")
+
+        if user_question_attribute:
+            user_question_dataframe = st.text_input(
+                "Is there anything else that you want to know about the data?"
+            )
+            if user_question_dataframe is not None and user_question_dataframe != "":
+                function_question_dataframe()
+            if user_question_dataframe is ("no", "No"):
+                st.write("")
