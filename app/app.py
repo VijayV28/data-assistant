@@ -21,6 +21,18 @@ from langchain.agents.agent_types import AgentType
 from langchain.utilities import WikipediaAPIWrapper
 from langchain.utilities import GoogleSearchAPIWrapper
 
+from langchain.chains.conversation.base import ConversationChain
+from langchain.memory import ConversationBufferWindowMemory
+from langchain.prompts import (
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+    ChatPromptTemplate,
+    MessagesPlaceholder,
+)
+from streamlit_chat import message
+from functions import find_match, query_refiner, get_conversation_string
+
+
 # Main
 st.title("Data Lens: Your AI-powered data analysis assistant")
 st.write(
@@ -34,11 +46,12 @@ with st.sidebar:
         """*Data Lens is an AI-powered data analysis assistant that helps you understand your data better.*"""
     )
     st.caption("**Powered by OpenAI**")
-    st.divider()
+
     st.caption(
-        "<p style='text-align:center'>Developed by Vijay</p>",
+        "<p style='text-align:center'>Developed by BaryCenter ✨</p>",
         unsafe_allow_html=True,
     )
+    st.divider()
 
 # Initializing the session state
 if "clicked" not in st.session_state:
@@ -311,4 +324,76 @@ if st.session_state.clicked[1]:
 
     with tab2:
         st.header("Chatbot")
-        st.write("Chatbot Assistant for your data (Coming soon!)")
+        st.write("Chatbot Assistant for your data")
+
+        st.write("")
+
+        if "responses" not in st.session_state:
+            st.session_state["responses"] = ["Hello! How can I help you today?"]
+        if "requests" not in st.session_state:
+            st.session_state["requests"] = []
+
+        # Initializing the LLM
+        llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+
+        # Storing in memory the previous 3 messages for context
+        if "buffer_memory" not in st.session_state:
+            st.session_state.buffer_memory = ConversationBufferWindowMemory(
+                k=3, return_messages=True
+            )
+
+        system_message_template = SystemMessagePromptTemplate.from_template(
+            template="""Answer the question to the best of your abilities using the provided context, 
+        and if the answer is not contained within the text below, say 'I don't know' """
+        )
+        human_message_template = HumanMessagePromptTemplate.from_template(
+            template="{input}"
+        )
+        prompt_template = ChatPromptTemplate.from_messages(
+            [
+                system_message_template,
+                MessagesPlaceholder(variable_name="history"),
+                human_message_template,
+            ]
+        )
+
+        conversation = ConversationChain(
+            memory=st.session_state.buffer_memory,
+            verbose=True,
+            llm=llm,
+            prompt=prompt_template,
+        )
+
+        response_container = st.container()
+        text_container = st.container()
+
+        with text_container:
+            query = st.text_input("", key="input")
+            if query:
+                with st.spinner("Synthesizing response..."):
+                    conversation_string = get_conversation_string()
+                    refined_query = query_refiner(conversation_string, query)
+                    # st.subheader("Refined Query:")
+                    # st.write(refined_query)
+                    context = find_match(refined_query)
+                    response = conversation.predict(
+                        input=f"Context:\n {context} \n\n Query: {query}"
+                    )
+                st.session_state.requests.append(query)
+                st.session_state.responses.append(response)
+
+        with response_container:
+            if st.session_state["responses"]:
+                for i in range(len(st.session_state["responses"])):
+                    message(
+                        st.session_state["responses"][i],
+                        key=str(i),
+                        avatar_style="Icons",
+                    )
+                    if i < len(st.session_state["requests"]):
+                        message(
+                            st.session_state["requests"][i],
+                            is_user=True,
+                            key=str(i) + "_user",
+                            avatar_style="Icons",
+                        )

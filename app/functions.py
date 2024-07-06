@@ -18,7 +18,7 @@ index = pc.Index("ai-assistant")
 
 def find_match(input):
     input_em = model.encode(input).tolist()
-    result = index.query(input_em, top_k=2, includeMetadata=True)
+    result = index.query(vector=input_em, top_k=2, includeMetadata=True)
     return (
         result["matches"][0]["metadata"]["text"]
         + "\n"
@@ -27,16 +27,16 @@ def find_match(input):
 
 
 def query_refiner(conversation, query):
-    response = openai.Completion.create(
-        model="text-davinci-003",
+    response = openai.completions.create(
+        model="gpt-3.5-turbo-instruct",
         prompt=f"Given the following user query and conversation log, formulate a question that would be the most relevant to provide the user with an answer from a knowledge base.\n\nCONVERSATION LOG: \n{conversation}\n\nQuery: {query}\n\nRefined Query:",
         temperature=0.7,
         max_tokens=256,
-        top_p=1,
+        top_p=1,  # https://community.openai.com/t/cheat-sheet-mastering-temperature-and-top-p-in-chatgpt-api/172683
         frequency_penalty=0,
         presence_penalty=0,
     )
-    return response["choices"][0]["text"]
+    return response.choices[0].text.strip()
 
 
 def get_conversation_string():
