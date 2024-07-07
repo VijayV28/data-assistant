@@ -34,24 +34,35 @@ from functions import find_match, query_refiner, get_conversation_string
 
 
 # Main
-st.title("Data Lens: Your AI-powered data analysis assistant")
+st.title("Data Lens 🔍: Your AI-powered data analysis assistant")
 st.write(
-    "AI-powered data analysis assistant that helps you understand your data better."
+    """Upload your data and let Data Lens reveal hidden insights, trends, and patterns 📈 with the power of AI. 
+    Get basic data descriptions, explore specific attributes in depth, query your data with ease, and even perform machine learning - all in one place."""
 )
 
 # * -> Italics
 # ** -> Bold
 with st.sidebar:
-    st.write(
-        """*Data Lens is an AI-powered data analysis assistant that helps you understand your data better.*"""
-    )
-    st.caption("**Powered by OpenAI**")
+    st.write("<p style='text-align:center'>Data Lens</p>", unsafe_allow_html=True)
+    st.markdown(
+        """ 
+    _Effortlessly explore, understand, and model your data._
 
-    st.caption(
-        "<p style='text-align:center'>Developed by BaryCenter ✨</p>",
+    * **Comprehensive Exploration:**  Kickstart your analysis with automated EDA, revealing key insights and patterns through interactive visualizations.
+    * **Intuitive Querying:** Ask questions about your data in plain language and get instant answers, no coding required. 
+    * **Predictive Power:**  Seamlessly transition from data understanding to predictive modeling. Data Lens translates your business objectives into robust machine learning solutions.
+    * **AI-Powered Chatbot:**  Have questions about your specific documents? Our new chatbot leverages cutting-edge vector databases to provide accurate and context-aware answers. 
+
+    Data Lens empowers you to unlock the full potential of your data – all in one place.
+    """,
         unsafe_allow_html=True,
     )
     st.divider()
+    st.caption(
+        "<p style='text-align:center'>Developed by Vijay V ✨</p>",
+        unsafe_allow_html=True,
+    )
+
 
 # Initializing the session state
 if "clicked" not in st.session_state:
@@ -258,9 +269,9 @@ if st.session_state.clicked[1]:
             st.header("Exploratory Data Analysis")
             st.subheader("General information about the dataset")
 
-            with st.sidebar:
-                with st.expander("Steps of EDA"):
-                    st.write(steps_eda())
+            # with st.sidebar:
+            #     with st.expander("Steps of EDA"):
+            #         st.write(steps_eda())
 
             function_agent()
 
@@ -390,12 +401,10 @@ if st.session_state.clicked[1]:
                     message(
                         st.session_state["responses"][i],
                         key=str(i),
-                        avatar_style="Icons",
                     )
                     if i < len(st.session_state["requests"]):
                         message(
                             st.session_state["requests"][i],
                             is_user=True,
                             key=str(i) + "_user",
-                            avatar_style="Icons",
                         )
